@@ -1,0 +1,6 @@
+dpath
+num2words
+ordered-set
+PyYAML
+requests
+word2number
