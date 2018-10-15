@@ -27,7 +27,7 @@ with that. Because this never happened.
     git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Pre-requisites
-An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only required until this project is turned into a website in a [future release](#but-wait-theres-maor-bananas). You will need to set two environment variables for the API key credentials:
+An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only required until this project is turned into a website in a [future release](#but-wait-theres-more-bananas). You will need to set two environment variables for the API key credentials:
 
     APP_ID
     APP_KEY
@@ -43,7 +43,7 @@ for details but essentially you put some phrases in a [file](tests/phrases.yml) 
 
     python banana.py --bananas phrases.yml
 
-## But wait, there's maor bananas
+## But wait, there's more bananas
 I originally started this as a joke because I thought it would be fun to make some sentences out of
 my friend's phrases like we do in real life (you know who you are, person who started this). Then I
 realised that Natural Language Processing takes more than three beers and a few hours of Python. So
