@@ -57,7 +57,7 @@ for v0.1 I wrote some code than does the silly then decided it would be cool and
 showcase my (limited) skill-set and turn this into a portfolio piece. Which roughly means future
 versions will roll out with these upgrades:
 
-- ~~Object Oriented (FTW)~~ `v0.1`
+- ~~Object Oriented (FTW)~~ `v0.2`
 - Multi-threading (Parallel, whoo)
 - Storage (DynamoDB)
 - Caching (Elasticache/Redis)
