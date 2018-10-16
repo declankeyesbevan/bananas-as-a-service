@@ -27,7 +27,10 @@ with that. Because this never happened.
     git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Pre-requisites
-An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only required until this project is turned into a website in a [future release](#but-wait-theres-more-bananas). You will need to set two environment variables for the API key credentials:
+An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only
+required until this project is turned into a website in a 
+[future release](#but-wait-theres-more-bananas). You will need to set two environment variables for 
+the API key credentials:
 
     APP_ID
     APP_KEY
@@ -37,27 +40,31 @@ An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). 
     python3.6
 
 ## Usage
-Bananas-as-a-Service in its current incarnation (v0.1) is a simple script where you pass a YAML file
-of phrases and get back a bunch of sort of English sentences thrown to the logger. See [`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py)
-for details but essentially you put some phrases in a [file](tests/phrases.yml) and then pass it to the script e.g.:
+Bananas-as-a-Service in its current incarnation (v0.2) is an object-oriented version of the simple
+script from v0.1 where you pass a YAML file of phrases and get back a bunch of sort of English
+sentences thrown to the logger. See 
+[`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py)
+for details but essentially you put some phrases in a [file](tests/phrases.yml) and then pass it to 
+the script via the runner e.g.:
 
-    python banana.py --bananas phrases.yml
+    python go_bananas.py --bananas phrases.yml
 
 ## But wait, there's more bananas
 I originally started this as a joke because I thought it would be fun to make some sentences out of
 my friend's phrases like we do in real life (you know who you are, person who started this). Then I
 realised that Natural Language Processing takes more than three beers and a few hours of Python. So
 for v0.1 I wrote some code than does the silly then decided it would be cool and fun to actually
-showcase my (limited) skillset and turn this into a portfolio piece. Which roughly means future
+showcase my (limited) skill-set and turn this into a portfolio piece. Which roughly means future
 versions will roll out with these upgrades:
 
-- Object Oriented (FTW)
+- ~~Object Oriented (FTW)~~ `v0.1`
 - Multi-threading (Parallel, whoo)
 - Storage (DynamoDB)
 - Caching (Elasticache/Redis)
 - Serverless (AWS Serverless Application Model)
 - CI/CD (AWS CodePipeline and Friends)
 - Testing (Pytest and Martin Fowler's Testing Pyramid)
+- API (Who gots the Swagger)
 - Front-end (React.js)
 - Documentation (Sphinx)
 - Monitoring (CloudWatch/ELK)
