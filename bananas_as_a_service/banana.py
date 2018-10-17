@@ -36,9 +36,11 @@ legit. Finally these are dumped to our friendly neighbourhood `StreamHandler` lo
 """
 
 # pylint: disable=invalid-name, logging-fstring-interpolation, ungrouped-imports
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, trailing-comma-tuple
 
 import re
+
+from itertools import product
 
 from num2words import num2words
 from ordered_set import OrderedSet
@@ -50,6 +52,8 @@ from log import Logger
 from word_classifier import WordClassifier
 
 
+# FIXME: refactor this class as there is just far too much nested access, get functional
+# TODO: add more doco for things that might be just a little bit weird
 class Banana:
     """
     Turns common phrases into new and fun sentences.
@@ -57,6 +61,7 @@ class Banana:
 
     _ORDERING = ['number', 'adverb', 'adjective', 'noun']
     _NUMBERS_AS_WORDS = 10
+    _FIRST_WORD = 0
 
     def __init__(self):
         self._logger = Logger().get_logger()
@@ -86,7 +91,7 @@ class Banana:
         # Get rid of anything that isn't a word or space, then make them uniformly lower case.
         all_your_token_are_belong_to_us = set()
         for phrase in data:
-            youre_not_special = re.sub(r'([^\s\w]|_)+', '', phrase)
+            youre_not_special = re.sub(r'([^\s\w]|_)+', '', str(phrase))
             all_your_token_are_belong_to_us.update(set(youre_not_special.lower().split(' ')))
         return list(all_your_token_are_belong_to_us)
 
@@ -111,6 +116,9 @@ class Banana:
         return classified
 
     def _order(self, cleaned):
+        # TODO: Word == (adjective or noun) && (plural) && (before a noun) -> make singular e.g.:
+        #   - Five easy bananas minutes. (Weird-as-a-Service)
+        #   - Five easy banana minutes. (Totally sensible Driven Development)
         mapped = {}
         for words in cleaned:
             for key, value in words.items():
@@ -118,21 +126,49 @@ class Banana:
                     if kind in value.get('categories'):
                         mapped.setdefault(kind, []).append(key)
 
+        remove_empty = list(
+            filter(None, [
+                mapped.get('number'),
+                mapped.get('adverb'),
+                mapped.get('adjective'),
+                mapped.get('noun'),
+            ])
+        )
+
         # Order the words in the sentence using a basic English language syntax.
-        sentences = []
-        for number in mapped.get('number'):
-            for adverb in mapped.get('adverb'):
-                for adjective in mapped.get('adjective'):
-                    for noun in mapped.get('noun'):
-                        sentences.append([number, adverb, adjective, noun])
+        cartesian_product = list(product(*remove_empty))
+        sentences = [list(self._flat_tuple(item)) for item in cartesian_product]
 
         duplicates_removed = OrderedSet([tuple(OrderedSet(sentence)) for sentence in sentences])
+        # Having no numbers at the start of otherwise valid sentences is legit English.
         no_need_for_numbers = OrderedSet([
-            tuple(sentence[1:]) for sentence in duplicates_removed
+            tuple(self._get_rest(sentence)) for sentence in duplicates_removed
             if isinstance(self._get_first(sentence), int)
         ])
 
         return duplicates_removed.union(no_need_for_numbers)
+
+    def _flat_tuple(self, nice_tuple):
+        # TODO: try to make this into some nice functional programming goodness
+        # Shout out to my man for inspiration on this one: https://adammonsen.com/post/176/
+        if not isinstance(nice_tuple, (tuple, list)):
+            return nice_tuple,
+        if not nice_tuple:
+            return tuple(nice_tuple)
+        return (
+            self._flat_tuple(self._get_first(nice_tuple)) +
+            self._flat_tuple(self._get_rest(nice_tuple))
+        )
+
+    @classmethod
+    def _get_first(cls, collection):
+        first, *_ = collection
+        return first
+
+    @classmethod
+    def _get_rest(cls, collection):
+        _, *rest = collection
+        return rest
 
     def _make_some_sentences(self, ordered):
         ordered = list(map(list, ordered))
@@ -141,16 +177,12 @@ class Banana:
             self._set_first(first_word, sentence)
         return [f"{' '.join(sentence)}." for sentence in ordered]
 
-    @classmethod
-    def _get_first(cls, collection):
-        return collection[0]
-
     def _set_first(self, first_word, sentence):
         # Only use digits for 10 and up, below is words e.g. five. Always capitalise the sentence.
         if isinstance(first_word, int):
-            sentence[0] = (
+            sentence[self._FIRST_WORD] = (
                 num2words(first_word).capitalize() if first_word < self._NUMBERS_AS_WORDS
                 else str(first_word)
             )
         else:
-            sentence[0] = str(first_word).capitalize()
+            sentence[self._FIRST_WORD] = str(first_word).capitalize()
