@@ -75,6 +75,8 @@ class OxfordDAO:
         if not all_classifications:
             raise GeneralError("Exiting due to no words matched")
 
+        self._logger.info(f"Number of word(s) processed: {len(all_classifications)}")
+
         return all_classifications
 
     def _categorise(self, response, word):
