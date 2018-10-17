@@ -6,6 +6,8 @@ Abstraction object for accessing lexical data about words from Oxford Dictionari
 
 import os
 
+from threading import Thread
+
 import dpath
 import requests
 
@@ -33,11 +35,20 @@ class OxfordDAO:
 
     def __init__(self):
         self._logger = Logger().get_logger()
+        self._results = None
         self._words_not_found = 0
 
     def classify(self, tokens):
         """
         Request and parse lexical categories, grammatical features and inflections of words.
+
+        As we are hitting an external API for every single word to classify, and calls to that API
+        take about a second each, and each of these calls is I/O bound, and none of those calls can
+        cause a race condition, let's go ahead and get all multi-threaded all up in this hizzle.
+
+        Big shout out to these two MT-spirational peeps:
+        https://www.shanelynn.ie/using-python-threading-for-multiple-results-queue/
+        https://www.amazon.com/Core-Python-Applications-Programming-3rd/dp/0132678209
 
         :param tokens: Words to be classified
         :type tokens: :class: `list`
@@ -47,37 +58,48 @@ class OxfordDAO:
         self._logger.info(f"Classifying tokens: {tokens}")
         # TODO: think about handling downstream missing data from exceptions
         # FIXME: far too nested
+        # TODO: use `Queue` for batching more words to prevent error: can't start new thread
 
-        all_classifications = []
-        for token in tokens:
-            word = {}
+        self._results = [{} for _ in tokens]
+        threads = []
+        for index, token in enumerate(tokens):
             if isinstance(token, int):
-                word.update({'categories': ['number']})
+                self._results[index] = {token: {'categories': ['number']}}
             else:
-                try:
-                    response = requests.get(
-                        f'{self._BASE_URL}{token.lower()}',
-                        headers={'app_id': self._APP_ID, 'app_key': self._APP_KEY})
-                    if response.status_code != self._HTTP_SUCCESS:
-                        self._words_not_found += 1
-                        raise RequestException
-                except RequestException as exc:
-                    self._logger.error(
-                        f"Unable to get word: '{token}' from API due to: {exc}", exc_info=True)
-                else:
-                    word = self._categorise(response, word)
+                thread = Thread(target=self._request_from_api, args=(token, index))
+                thread.start()
+                threads.append(thread)
 
-            all_classifications.append({token: word})
+        for thread in threads:
+            thread.join()
 
         if self._words_not_found:
             self._logger.error(f"Number of word(s) not found: {self._words_not_found}")
 
-        if not all_classifications:
+        if not self._results:
             raise GeneralError("Exiting due to no words matched")
 
-        self._logger.info(f"Number of word(s) processed: {len(all_classifications)}")
+        self._logger.info(f"Number of word(s) processed: {len(self._results)}")
+        return self._results
 
-        return all_classifications
+    def _request_from_api(self, token, index):
+        word = {}
+        try:
+            response = requests.get(
+                f'{self._BASE_URL}{token.lower()}',
+                headers={'app_id': self._APP_ID, 'app_key': self._APP_KEY}
+            )
+            if response.status_code != self._HTTP_SUCCESS:
+                self._words_not_found += 1
+                raise RequestException
+        except RequestException as exc:
+            self._logger.error(
+                f"Unable to get word: '{token}' from API due to: {exc}", exc_info=True)
+            self._results[index] = {}
+        else:
+            word = self._categorise(response, word)
+            self._results[index] = {token: word}
+        return True
 
     def _categorise(self, response, word):
         for key, value in self._TO_PARSE.items():
