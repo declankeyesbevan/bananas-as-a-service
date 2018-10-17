@@ -5,8 +5,8 @@ and caching this will be a defined public interface that will hide this implemen
 
 # pylint: disable=too-few-public-methods
 
-from data_access_layer.oxford_dao import OxfordDAO
-from log import Logger
+from bananas_as_a_service.data_access_layer.oxford_dao import OxfordDAO
+from bananas_as_a_service.log import Logger
 
 
 class WordClassifier:

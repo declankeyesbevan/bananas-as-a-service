@@ -8,7 +8,7 @@ import yaml
 
 from yaml.error import YAMLError
 
-from error_handler import GeneralError
+from bananas_as_a_service.error_handler import GeneralError
 
 
 class YAMLDAO:

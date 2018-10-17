@@ -46,10 +46,10 @@ from num2words import num2words
 from ordered_set import OrderedSet
 from word2number import w2n
 
-from data_access_layer.user_dao import UserDAO
-from data_access_layer.yaml_dao import YAMLDAO
-from log import Logger
-from word_classifier import WordClassifier
+from bananas_as_a_service.data_access_layer.user_dao import UserDAO
+from bananas_as_a_service.data_access_layer.yaml_dao import YAMLDAO
+from bananas_as_a_service.log import Logger
+from bananas_as_a_service.word_classifier import WordClassifier
 
 
 # FIXME: refactor this class as there is just far too much nested access, get functional

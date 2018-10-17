@@ -13,8 +13,8 @@ import requests
 
 from requests.exceptions import RequestException
 
-from error_handler import GeneralError
-from log import Logger
+from bananas_as_a_service.error_handler import GeneralError
+from bananas_as_a_service.log import Logger
 
 
 class OxfordDAO:
