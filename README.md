@@ -22,11 +22,11 @@ Unless you work in this definitely fictional team you will most likely think thi
 software that I have lovingly crafted is total idiocy and that I should stop programming. I am fine
 with that. Because this never happened.
 
-## Installation
+## Requires
 
-    git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
+    python3.6
 
-## Pre-requisites
+## Prerequisites
 An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only
 required until this project is turned into a website in a 
 [future release](#but-wait-theres-more-bananas). You will need to set two environment variables for 
@@ -35,9 +35,9 @@ the API key credentials:
     APP_ID
     APP_KEY
 
-## Requires
+## Installation
 
-    python3.6
+    git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Usage
 Bananas-as-a-Service in its current incarnation (v0.3) is a multi-threaded, object-oriented version 
