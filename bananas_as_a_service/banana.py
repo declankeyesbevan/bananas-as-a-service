@@ -143,9 +143,8 @@ class Banana:
         # Having no numbers at the start of otherwise valid sentences is legit English.
         no_need_for_numbers = OrderedSet([
             tuple(self._get_rest(sentence)) for sentence in duplicates_removed
-            if isinstance(self._get_first(sentence), int)
+            if isinstance(self._get_first(sentence), int) and len(sentence) > 1
         ])
-
         return duplicates_removed.union(no_need_for_numbers)
 
     def _flat_tuple(self, nice_tuple):

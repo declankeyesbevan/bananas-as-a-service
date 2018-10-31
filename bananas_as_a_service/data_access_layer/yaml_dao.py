@@ -30,6 +30,8 @@ class YAMLDAO:
         try:
             with open(input_file) as yaml_file:
                 data = yaml.load(yaml_file)
+                if not data:
+                    raise GeneralError("YAML file is empty")
         except (IOError, FileNotFoundError):
             raise GeneralError(f"Failed to open YAML file {data}")
         except YAMLError:

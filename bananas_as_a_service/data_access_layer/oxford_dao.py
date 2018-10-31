@@ -22,9 +22,13 @@ class OxfordDAO:
     Data Access Object for making requests to the Oxford Dictionaries API.
     """
 
+    try:
+        _APP_ID = os.environ['APP_ID']
+        _APP_KEY = os.environ['APP_KEY']
+    except KeyError:
+        raise GeneralError("Missing app credential environment variables")
+
     # TODO: investigate data classes
-    _APP_ID = os.environ.get('APP_ID')
-    _APP_KEY = os.environ.get('APP_KEY')
     _BASE_URL = 'https://od-api.oxforddictionaries.com:443/api/v1/inflections/en/'
     _TO_PARSE = {
         'categories': 'lexicalCategory',
@@ -32,6 +36,7 @@ class OxfordDAO:
         'inflection': 'inflectionOf',
     }
     _HTTP_SUCCESS = 200
+    _HTTP_FORBIDDEN = 403
 
     def __init__(self):
         self._logger = Logger().get_logger()
@@ -89,6 +94,8 @@ class OxfordDAO:
                 f'{self._BASE_URL}{token.lower()}',
                 headers={'app_id': self._APP_ID, 'app_key': self._APP_KEY}
             )
+            if response.status_code == self._HTTP_FORBIDDEN:
+                raise GeneralError("Incorrect app credentials")
             if response.status_code != self._HTTP_SUCCESS:
                 self._words_not_found += 1
                 raise RequestException
