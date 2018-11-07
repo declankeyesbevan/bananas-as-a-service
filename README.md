@@ -27,13 +27,26 @@ with that. Because this never happened.
     python3.6
 
 ## Prerequisites
+### Oxford Dictionaries API
 An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only
 required until this project is turned into a website in a 
 [future release](#but-wait-theres-more-bananas). You will need to set two environment variables for 
-the API key credentials:
+the API key credentials, for example:
 
-    APP_ID
-    APP_KEY
+    APP_ID=1234a1a3
+    APP_KEY=12ab1234a12abc12a12a1a12a112ab12
+
+### AWS
+#### DynamoDB
+You will need to have an AWS account and it will need to be configured for
+[CLI access](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html) as the script is run
+from the command line. You will also need a DynamoDB table with only a partition key. The table is
+for storage and retrieval of words to reduce API calls to the Oxford Dictionary. Example values are:
+
+    AWS_REGION=ap-southeast-2
+    AWS_PROFILE=personal
+    TABLE_NAME=banana-words
+    PARTITION_KEY=word
 
 ## Installation
 
