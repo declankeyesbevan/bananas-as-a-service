@@ -40,9 +40,9 @@ the API key credentials:
     git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Usage
-Bananas-as-a-Service in its current incarnation (v0.3) is a multi-threaded, object-oriented version 
-of the simple script from v0.1 where you pass a YAML file of phrases and get back a bunch of sort
-of English sentences thrown to the logger. See 
+Bananas-as-a-Service in its current incarnation (v0.4) is a multi-threaded, object-oriented,
+cloud storage backed, version of the simple script from v0.1 where you pass a YAML file of
+phrases and get back a bunch of sort of English sentences thrown to the logger. See 
 [`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py)
 for details but essentially you put some phrases in a [file](tests/phrases.yml) and then pass it to 
 the script via the runner e.g.:
