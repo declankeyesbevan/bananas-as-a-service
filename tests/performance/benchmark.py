@@ -13,22 +13,25 @@ GENERAL_ERROR = 42
 logger = Logger.get_logger()
 
 
-# TODO: considering making this into a class for re-use as it's the same as the main runner
-def banana_handler():
+# FIXME: Make this a sub class of go_bananas.handler, they're the same code bro
+def banana_hammock():
     """
     Top-level exception handling runner for banana.py.
     """
     logger.info("Beginning execution")
 
     try:
-        Banana().execute()
+        sentences = Banana().execute()
     except Exception as exc:
         logger.exception(f"Exception in execution: {exc}")
         exit(GENERAL_ERROR)
     else:
+        logger.info("Here are your bananas!")
+        for sentence in sentences:
+            logger.info(sentence)
         logger.info("Successful execution")
 
 
 if __name__ == '__main__':
     import cProfile
-    cProfile.run('banana_handler()')
+    cProfile.run('banana_hammock()')

@@ -59,12 +59,12 @@ versions will roll out with these upgrades:
 
 - ~~Object Oriented (FTW)~~ `v0.2`
 - ~~Multi-threading (Parallel, whoo)~~ `v0.3`
-- Storage (DynamoDB)
-- Caching (Elasticache/Redis)
+- ~~Storage (DynamoDB)~~ `v0.4`
 - Serverless (AWS Serverless Application Model)
 - CI/CD (AWS CodePipeline and Friends)
 - Testing (Pytest and Martin Fowler's Testing Pyramid)
 - API (Who gots the Swagger)
+- Caching (Elasticache/Redis)
 - Front-end (React.js)
 - Documentation (Sphinx)
 - Monitoring (CloudWatch/ELK)

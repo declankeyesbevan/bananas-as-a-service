@@ -20,11 +20,14 @@ def handler():
     logger.info("Beginning execution")
 
     try:
-        Banana().execute()
+        sentences = Banana().execute()
     except Exception as exc:
         logger.exception(f"Exception in execution: {exc}")
         exit(GENERAL_ERROR)
     else:
+        logger.info("Here are your bananas!")
+        for sentence in sentences:
+            logger.info(sentence)
         logger.info("Successful execution")
 
 

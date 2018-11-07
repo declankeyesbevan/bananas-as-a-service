@@ -78,13 +78,10 @@ class Banana:
         data = YAMLDAO().load_yaml_file(args.bananas)
         tokens = self._tokenise(data)
         words_as_numbers = list(set(self._words_to_numbers(tokens)))
-        classified = WordClassifier().classify(words_as_numbers)
+        classified = WordClassifier(words_as_numbers).classify()
         cleaned = self._clean(classified)
         ordered = self._order(cleaned)
-        sentenced = self._make_some_sentences(ordered)
-
-        for sentence in sentenced:
-            self._logger.info(sentence)
+        return self._make_some_sentences(ordered)
 
     @classmethod
     def _tokenise(cls, data):

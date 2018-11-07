@@ -81,8 +81,8 @@ class OxfordDAO:
         if not self._results:
             raise GeneralError("Exiting due to no words matched")
 
-        self._logger.info(f"Number of word(s) processed: {len(self._results)}")
-        return self._results
+        self._logger.info(f"Word(s) processed from OxfordDAO: {len(self._results)}")
+        return [result for result in self._results if result]
 
     def _load_credentials(self):
         try:
