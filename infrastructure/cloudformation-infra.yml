@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Bananas-as-a-Service CloudFormation Infrastructure
 
+# TODO: Add CodeBuild/CodePipeline etc
+
 Resources:
   S3BananaBucket:
     Type: AWS::S3::Bucket
