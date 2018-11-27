@@ -1,3 +1,7 @@
+"""Data Access Object for abstracting connections to DynamoDB."""
+
+# pylint: disable=logging-fstring-interpolation
+
 import os
 
 import dpath
@@ -8,13 +12,19 @@ from num2words import num2words
 from word2number import w2n
 
 from bananas_as_a_service.aws import connect_to_aws_resource
-from bananas_as_a_service.log import Logger
-from error_handler import GeneralError
+from bananas_as_a_service.app_logger import Logger
+from bananas_as_a_service.error_handler import GeneralError
 
 
 # FIXME: all this flipping of words to numbers and back seems pretty hackish
 # TODO: add a blacklist Dynamo table of nonsense words not found that will never be found
 class DynamoDAO:
+    """
+    Initialise with a list of words. These can be queried against DynamoDB. Words that are 'found'
+    and 'not found' are saved to instance attributes. Accessors of the 'found' can use these to save
+    a costly external API lookup; while 'not found' attributes can be looked up up elsewhere and
+    then saved to DynamoDB.
+    """
 
     def __init__(self, words):
         self._logger = Logger().get_logger()
@@ -27,10 +37,12 @@ class DynamoDAO:
 
     @property
     def found(self):
+        """Returns words that are found in DynamoDB."""
         return self._found
 
     @property
     def not_found(self):
+        """Returns words that are not found in DynamoDB."""
         return self._not_found
 
     # TODO: multi-thread this lookup
@@ -44,6 +56,8 @@ class DynamoDAO:
         handle both kinds of "numbers" and DynamoDB is just for storage and retrieval purposes. Keep
         the AI tamed to a single place, lest we unleash the Machine Apocalypse.
         """
+        self._logger.info(f"Checking DynamoDB storage for: {self._words}")
+
         for word in self._words:
             is_number, word = self._is_a_number(word)
 
@@ -77,6 +91,8 @@ class DynamoDAO:
         :param oxford_classifications:
         :type oxford_classifications: :class: list
         """
+        self._logger.info(f"Updating DynamoDB storage for: {oxford_classifications}")
+
         for classification in oxford_classifications:
             word, *_ = list(classification)
             is_number, word = self._is_a_number(word)
@@ -86,6 +102,7 @@ class DynamoDAO:
                 word = w2n.word_to_num(word)
 
             item.update(classification.get(word))
+            # TODO: move put_item to AWS for consistency
             try:
                 self._table.put_item(Item=item)
             except ClientError as exc:

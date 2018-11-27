@@ -1,10 +1,6 @@
-"""
-Abstraction object for accessing lexical data about words from Oxford Dictionaries API.
-"""
+"""Abstraction object for accessing lexical data about words from Oxford Dictionaries API."""
 
 # pylint: disable=logging-fstring-interpolation, too-few-public-methods
-
-import os
 
 from threading import Thread
 
@@ -13,14 +9,13 @@ import requests
 
 from requests.exceptions import RequestException
 
+from bananas_as_a_service.app_logger import Logger
+from bananas_as_a_service.aws import get_from_parameter_store
 from bananas_as_a_service.error_handler import GeneralError
-from bananas_as_a_service.log import Logger
 
 
 class OxfordDAO:
-    """
-    Data Access Object for making requests to the Oxford Dictionaries API.
-    """
+    """Data Access Object for making requests to the Oxford Dictionaries API."""
 
     # TODO: investigate data classes
     _BASE_URL = 'https://od-api.oxforddictionaries.com:443/api/v1/inflections/en/'
@@ -58,17 +53,16 @@ class OxfordDAO:
         :rtype: :class: `list`
         """
         self._logger.info(f"Classifying tokens: {tokens}")
-        # TODO: think about handling downstream missing data from exceptions
-        # FIXME: far too nested
-        # TODO: use `Queue` for batching more words to prevent error: can't start new thread
+        # TODO: use `Queue` for batching to prevent error and to make event driven
 
+        app_id, app_key = self._load_credentials()
         self._results = [{} for _ in tokens]
         threads = []
         for index, token in enumerate(tokens):
             if isinstance(token, int):
                 self._results[index] = {token: {'categories': ['number']}}
             else:
-                thread = Thread(target=self._request_from_api, args=(token, index))
+                thread = Thread(target=self._request_from_api, args=(token, index, app_id, app_key))
                 thread.start()
                 threads.append(thread)
 
@@ -76,7 +70,7 @@ class OxfordDAO:
             thread.join()
 
         if self._words_not_found:
-            self._logger.error(f"Number of word(s) not found: {self._words_not_found}")
+            self._logger.info(f"Number of word(s) not found: {self._words_not_found}")
 
         if not self._results:
             raise GeneralError("Exiting due to no words matched")
@@ -84,19 +78,17 @@ class OxfordDAO:
         self._logger.info(f"Word(s) processed from OxfordDAO: {len(self._results)}")
         return [result for result in self._results if result]
 
-    def _load_credentials(self):
-        try:
-            self._app_id = os.environ['APP_ID']
-            self._app_key = os.environ['APP_KEY']
-        except KeyError:
-            raise GeneralError("Missing app credential environment variables")
+    @classmethod
+    def _load_credentials(cls):
+        ssm_parameters = get_from_parameter_store(['app_id', 'app_key'])
+        return ssm_parameters['app_id'], ssm_parameters['app_key']
 
-    def _request_from_api(self, token, index):
+    def _request_from_api(self, token, index, app_id, app_key):
         word = {}
         try:
             response = requests.get(
                 f'{self._BASE_URL}{token.lower()}',
-                headers={'app_id': self._app_id, 'app_key': self._app_key}
+                headers={'app_id': app_id, 'app_key': app_key}
             )
             if response.status_code == self._HTTP_FORBIDDEN:
                 raise GeneralError("Incorrect app credentials")
@@ -116,7 +108,8 @@ class OxfordDAO:
         for key, value in self._TO_PARSE.items():
             parsed = [
                 category.get(value) for category in
-                dpath.values(response.json(), '**/lexicalEntries/*')]
+                dpath.values(response.json(), '**/lexicalEntries/*')
+            ]
             word.update({key: self._to_lower(parsed)})
         return word
 

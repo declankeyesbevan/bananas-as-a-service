@@ -1,20 +1,17 @@
 """
-This module is a command line script for parsing your friend's phrases and turning them into
-somewhat readable, sorta, kinda English language sentences. It uses advanced Aritifical Intelligence
-Machine Learning AKA sentences can generally follow this basic syntax: adverb, adjective, noun. It
-also takes into account if your friend has a favourite number, for example five. Numbers go first in
-this basic syntax.
+This module is for parsing your friend's phrases and turning them into somewhat readable, sorta,
+kinda English language sentences. It uses advanced Aritifical Intelligence Machine Learning AKA
+sentences can generally follow this basic syntax: adverb, adjective, noun. It also takes into
+account if your friend has a favourite number, for example five. Numbers go first in this basic
+syntax.
 
-Create a YAML file with a list of phrases e.g.:
+Pass a list of phrases e.g.:
   - "Cool bananas"
   - "Cool beans"
   - "5 minutes"
   - "Five minutes"
   - "Sick"
   - "Easy"
-This should then be passed to the runner entry point located in the project root directory as a
-command line argument e.g.:
-python go_bananas.py --bananas phrases.yml
 
 First the phrases will be tokenised i.e. anything that isn't a word or whitespace will be
 removed. The result will be lowercased; white-space split; de-duplicated.
@@ -46,18 +43,13 @@ from num2words import num2words
 from ordered_set import OrderedSet
 from word2number import w2n
 
-from bananas_as_a_service.data_access_layer.user_dao import UserDAO
-from bananas_as_a_service.data_access_layer.yaml_dao import YAMLDAO
-from bananas_as_a_service.log import Logger
+from bananas_as_a_service.app_logger import Logger
 from bananas_as_a_service.word_classifier import WordClassifier
 
 
 # FIXME: refactor this class as there is just far too much nested access, get functional
-# TODO: add more doco for things that might be just a little bit weird
 class Banana:
-    """
-    Turns common phrases into new and fun sentences.
-    """
+    """Turns common phrases into new and fun sentences."""
 
     _ORDERING = ['number', 'adverb', 'adjective', 'noun']
     _NUMBERS_AS_WORDS = 10
@@ -66,16 +58,15 @@ class Banana:
     def __init__(self):
         self._logger = Logger().get_logger()
 
-    def execute(self):
+    def execute(self, data):
         """
-        Entry point to parse command line argument of file to read of your friend's phrases.
+        Entry point to parse your friend's phrases.
 
-        Procedural style of programming where we fetch what we want, pass it for processing and use
-        the returned value for the next process; not a true "object".
+        Functional/procedural style of programming where we fetch what we want, pass it for
+        processing and use the returned value for the next process; not a true "object".
         """
+        self._logger.info(f"Executing Banana for data: {data}")
 
-        args = UserDAO().parse_args()
-        data = YAMLDAO().load_yaml_file(args.bananas)
         tokens = self._tokenise(data)
         words_as_numbers = list(set(self._words_to_numbers(tokens)))
         classified = WordClassifier(words_as_numbers).classify()
@@ -145,7 +136,6 @@ class Banana:
         return duplicates_removed.union(no_need_for_numbers)
 
     def _flat_tuple(self, nice_tuple):
-        # TODO: try to make this into some nice functional programming goodness
         # Shout out to my man for inspiration on this one: https://adammonsen.com/post/176/
         if not isinstance(nice_tuple, (tuple, list)):
             return nice_tuple,

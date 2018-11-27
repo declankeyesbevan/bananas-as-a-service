@@ -103,5 +103,11 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# jetbrains
+# Jetbrains
 *.idea
+
+# Build
+build/*
+
+# AWS SAM
+packaged-app.yml

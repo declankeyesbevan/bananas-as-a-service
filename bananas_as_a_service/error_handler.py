@@ -1,10 +1,6 @@
-"""
-Declare application error types.
-"""
+"""Declare application error types."""
 
 
 class GeneralError(Exception):
-    """
-    Generic error type.
-    """
+    """Generic error type."""
     pass

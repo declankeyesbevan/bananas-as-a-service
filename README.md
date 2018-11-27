@@ -14,7 +14,7 @@ solid, it could be rated as "five bananas" out of five. You know, normal things 
 normal people say and do. Normally.
 
 These phrases will be crafted using the latest, greatest and matest so bleeding-edge it will make
-your face bleed, Aritifical Intelligence, Machine Learning, AI, ML, TLA, Buzzword, Acronym Goodness,
+your face bleed, Artificial Intelligence, Machine Learning, AI, ML, TLA, Buzzword, Acronym Goodness,
 new-fangled and dangled technology Service-as-a-Service Driven Development. I would imagine.
 
 ### Disclaimer
@@ -30,37 +30,100 @@ with that. Because this never happened.
 ### Oxford Dictionaries API
 An [Oxford Dictionaries API account](https://developer.oxforddictionaries.com). However this is only
 required until this project is turned into a website in a 
-[future release](#but-wait-theres-more-bananas). You will need to set two environment variables for 
-the API key credentials, for example:
+[future release](#but-wait-theres-more-bananas). The `app_id` and `app_key` need to be stored in the
+[AWS Parameter Store using Systems Manager](#systems-manager). 
 
-    APP_ID=1234a1a3
-    APP_KEY=12ab1234a12abc12a12a1a12a112ab12
+### Environment Variables
+You will need to set a number of environment variables. Examples can be found in 
+[`.env.example`](.env.example). To export these to your BASH shell do the following:
+
+    set -a
+    . ./.env.example
+    set +a
+
+Creating a script for the above doesn't work because the setting and sourcing happens in a sub
+shell. There are hacky ways around this but I try to avoid that where possible.
 
 ### AWS
-#### DynamoDB
-You will need to have an AWS account and it will need to be configured for
-[CLI access](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html) as the script is run
-from the command line. You will also need a DynamoDB table with only a partition key. The table is
-for storage and retrieval of words to reduce API calls to the Oxford Dictionary. Example values are:
+You need to have an AWS account and it will need to be configured for
+[CLI access](https://docs.aws.amazon.com/cli/latest/topic/config-vars.html) as the build/deployment
+scripts require this.
 
-    AWS_REGION=ap-southeast-2
-    AWS_PROFILE=personal
-    TABLE_NAME=banana-words
-    PARTITION_KEY=word
+#### Infrastructure
+##### S3 and DynamoDB
+These are created using CloudFormation. Execute 
+[`scripts/deploy_infrastructure.sh`](scripts/deploy_infrastructure.sh) to create the stack. S3 is
+used to store the packaged CloudFormation templates. The DynamoDB table is for storage and retrieval
+of word metadata.  
+
+#### Application
+The Python application is packaged and deployed using the 
+[AWS Serverless Application Model (SAM)](https://github.com/awslabs/serverless-application-model).
+
+##### API Gateway
+An API Gateway API accepts `POST` requests at the path `/banana` on the stage `api`.
+
+##### Lambda
+A Lambda function receives the API requests in the handler `app.lambda_handler`.
+
+#### Identity Access Management
+A policy of `AmazonDynamoDBFullAccess` is attached to this Lambda.
+
+#### Systems Manager
+To `GET` from the Oxford Dictionaries API an `app_id` and `app_key` are required. These are to be
+kept in the
+[AWS Systems Manager Parameter Store](
+https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-paramstore.html) as
+type `SecureString`. These can be added from environment variables to the Parameter Store using
+[`scripts/store_secrets.sh`](scripts/store_secrets.sh).
+
+#### Build
+The SAM app can be built using [`scripts/build_app.sh`](scripts/build_app.sh).
+
+#### Deploy
+The SAM app can be deployed using [`scripts/deploy_app.sh`](scripts/deploy_app.sh).
+
+#### SAM CLI
+If you are debugging locally, you can use [AWS SAM CLI](https://github.com/awslabs/aws-sam-cli). You
+can run [`scripts/start_sam_local.sh`](scripts/start_sam_local.sh) which starts the AWS
+recommended Docker container and creates a local API Gateway at `http:localhost:3000/banana`. So far
+I haven't been able to figure out how to get a nice remote debug session going on with sweet
+breakpoints in PyCharm. Also to be able to send HTTP requests from Postman and actually have SAM CLI
+response I've had to tell SAM CLI to use a random debug port. This has been the biggest source of
+frustration so far in this project. Setting breakpoints in local code and stepping through them on a
+remote Docker host is usually quite simple to set up, but alas. Stay tuned. I have beer with which
+to ponder this foe.
+
+If you use multiple AWS accounts in your configuration and credential files, you will need to pass
+the correct profile to SAM CLI. This is covered in the SAM local script with the environment
+variable `AWS_PROFILE` falling back to `default` if not set.
 
 ## Installation
 
     git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Usage
-Bananas-as-a-Service in its current incarnation (v0.4) is a multi-threaded, object-oriented,
-cloud storage backed, version of the simple script from v0.1 where you pass a YAML file of
-phrases and get back a bunch of sort of English sentences thrown to the logger. See 
-[`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py)
-for details but essentially you put some phrases in a [file](tests/phrases.yml) and then pass it to 
-the script via the runner e.g.:
+Bananas-as-a-Service in its current incarnation (v0.5) is a multi-threaded, object-oriented,
+cloud storage backed, serverless version of the simple script from v0.1 where you send phrases and
+get back a bunch of sort of English sentences. See 
+[`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py) for details.
+
+### Command Line
+You must put some phrases in a [file](tests/phrases.yml) and then pass it to the script via the
+runner e.g.:
 
     python go_bananas.py --bananas phrases.yml
+
+This runner simulates what API Gateway would pass to the triggered Lambda function so you can debug
+the code locally.
+
+You can also pass arguments to run a profiler on the application. This is:
+
+    python go_bananas.py --bananas tests/performance/benchmark.yml --performance true
+
+### HTTP
+I use [Postman](https://www.getpostman.com) for manual testing locally or remotely. You can use it
+with [SAM CLI](#sam-cli) to start a local API Gateway and Lambda; or after deployment to AWS.
 
 ## But wait, there's more bananas
 I originally started this as a joke because I thought it would be fun to make some sentences out of
@@ -73,10 +136,11 @@ versions will roll out with these upgrades:
 - ~~Object Oriented (FTW)~~ `v0.2`
 - ~~Multi-threading (Parallel, whoo)~~ `v0.3`
 - ~~Storage (DynamoDB)~~ `v0.4`
-- Serverless (AWS Serverless Application Model)
+- ~~Serverless (AWS Serverless Application Model)~~ `v0.5`
 - CI/CD (AWS CodePipeline and Friends)
 - Testing (Pytest and Martin Fowler's Testing Pyramid)
 - API (Who gots the Swagger)
+- Automation (Ansible)
 - Caching (Elasticache/Redis)
 - Front-end (React.js)
 - Documentation (Sphinx)

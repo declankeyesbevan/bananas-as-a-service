@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Bananas-as-a-Service CloudFormation Infrastructure
+
+Resources:
+  S3BananaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: bananas-as-a-service
+      AccessControl: Private
+  DynamoDBWordsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: word
+          AttributeType: S
+      KeySchema:
+        - AttributeName: word
+          KeyType: HASH
+      TableName: banana-words
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

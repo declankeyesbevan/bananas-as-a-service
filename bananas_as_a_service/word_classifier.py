@@ -3,17 +3,15 @@ API for accessing lexical data about words. Currently, first accesses the Dynamo
 to the OxfordDAO for missing word. Future implementation will have ElastiCache before DynamoDB.
 """
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, logging-fstring-interpolation
 
 from bananas_as_a_service.data_access_layer.dynamo_dao import DynamoDAO
 from bananas_as_a_service.data_access_layer.oxford_dao import OxfordDAO
-from bananas_as_a_service.log import Logger
+from bananas_as_a_service.app_logger import Logger
 
 
 class WordClassifier:
-    """
-    API to hide implementation of where lexical data about words comes from.
-    """
+    """API to hide implementation of where lexical data about words comes from."""
 
     def __init__(self, words):
         """

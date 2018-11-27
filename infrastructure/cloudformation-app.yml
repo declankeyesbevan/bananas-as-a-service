@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Bananas-as-a-service SAM App
+
+Resources:
+  BananasFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../build
+      Handler: bananas_as_a_service.app.lambda_handler
+      Runtime: python3.6
+      Environment:
+        Variables:
+          TABLE_NAME: banana-words
+          PARTITION_KEY: word
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            Path: /banana
+            Method: post
+            RestApiId: !Ref BananasApi
+      Policies: AmazonDynamoDBFullAccess
+  BananasApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: api
+
+Outputs:
+    BananasFunction:
+      Description: Bananas Lambda Function ARN
+      Value: !GetAtt BananasFunction.Arn
+    BananasApi:
+      Description: API Gateway endpoint URL for api stage for Bananas function
+      Value: !Sub "https://${BananasApi}.execute-api.${AWS::Region}.amazonaws.com/api/banana"
+    BananasFunctionIamRole:
+      Description: Implicit IAM Role created for Bananas function
+      Value: !GetAtt BananasFunctionRole.Arn
