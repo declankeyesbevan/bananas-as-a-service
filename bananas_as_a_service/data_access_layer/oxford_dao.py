@@ -24,7 +24,7 @@ class OxfordDAO:
         'features': 'grammaticalFeatures',
         'inflection': 'inflectionOf',
     }
-    _HTTP_SUCCESS = 200
+    _HTTP_OK = 200
     _HTTP_FORBIDDEN = 403
 
     def __init__(self):
@@ -92,7 +92,7 @@ class OxfordDAO:
             )
             if response.status_code == self._HTTP_FORBIDDEN:
                 raise GeneralError("Incorrect app credentials")
-            if response.status_code != self._HTTP_SUCCESS:
+            if response.status_code != self._HTTP_OK:
                 self._words_not_found += 1
                 raise RequestException
         except RequestException as exc:

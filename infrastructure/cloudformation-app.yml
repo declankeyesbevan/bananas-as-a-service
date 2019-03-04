@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: Bananas-as-a-service SAM App
+Description: Application for Bananas-as-a-Service
 
 Resources:
   BananasFunction:
@@ -20,7 +20,8 @@ Resources:
             Path: /banana
             Method: post
             RestApiId: !Ref BananasApi
-      Policies: AmazonDynamoDBFullAccess
+      Role: "arn:aws:iam::464042544576:role/lambda-banana-role"
+
   BananasApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -33,6 +34,3 @@ Outputs:
     BananasApi:
       Description: API Gateway endpoint URL for api stage for Bananas function
       Value: !Sub "https://${BananasApi}.execute-api.${AWS::Region}.amazonaws.com/api/banana"
-    BananasFunctionIamRole:
-      Description: Implicit IAM Role created for Bananas function
-      Value: !GetAtt BananasFunctionRole.Arn

@@ -89,7 +89,7 @@ can run [`scripts/start_sam_local.sh`](scripts/start_sam_local.sh) which starts 
 recommended Docker container and creates a local API Gateway at `http:localhost:3000/banana`. So far
 I haven't been able to figure out how to get a nice remote debug session going on with sweet
 breakpoints in PyCharm. Also to be able to send HTTP requests from Postman and actually have SAM CLI
-response I've had to tell SAM CLI to use a random debug port. This has been the biggest source of
+respond I've had to tell SAM CLI to use a random debug port. This has been the biggest source of
 frustration so far in this project. Setting breakpoints in local code and stepping through them on a
 remote Docker host is usually quite simple to set up, but alas. Stay tuned. I have beer with which
 to ponder this foe.
@@ -103,9 +103,9 @@ variable `AWS_PROFILE` falling back to `default` if not set.
     git clone https://github.com/declankeyesbevan/bananas-as-a-service.git
 
 ## Usage
-Bananas-as-a-Service in its current incarnation (v0.5) is a multi-threaded, object-oriented,
-cloud storage backed, serverless version of the simple script from v0.1 where you send phrases and
-get back a bunch of sort of English sentences. See 
+Bananas-as-a-Service in its current incarnation (v0.6) is a multi-threaded, object-oriented,
+cloud storage backed, serverless, infrastructure-as-code version of the simple script from v0.1
+where you send phrases and get back a bunch of sort of English sentences. See 
 [`bananas_as_a_service/banana.py`](bananas_as_a_service/banana.py) for details.
 
 ### Command Line
@@ -137,7 +137,7 @@ versions will roll out with these upgrades:
 - ~~Multi-threading (Parallel, whoo)~~ `v0.3`
 - ~~Storage (DynamoDB)~~ `v0.4`
 - ~~Serverless (AWS Serverless Application Model)~~ `v0.5`
-- CI/CD (AWS CodePipeline and Friends)
+- ~~CI/CD (AWS CodePipeline and Friends)~~ `v0.6`
 - Testing (Pytest and Martin Fowler's Testing Pyramid)
 - API (Who gots the Swagger)
 - Automation (Ansible)

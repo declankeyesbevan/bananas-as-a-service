@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: IAM for Bananas-as-a-Service
+
+Parameters:
+  CodePipeline:
+    Description: Role for performing CodePipeline tasks.
+    Type: String
+  CodeBuild:
+    Description: Role for performing CodeBuild tasks.
+    Type: String
+  CloudFormation:
+    Description: Role for performing CloudFormation tasks.
+    Type: String
+  Lambda:
+    Description: Role for performing Lambda tasks.
+    Type: String
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: 'CodePipeline Roles'
+        Parameters:
+          - CodePipeline
+          - CodeBuild
+          - CloudFormation
+      - Label:
+          default: 'Execution Roles'
+        Parameters:
+          - Lambda
+
+Resources:
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref CodePipeline
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codepipeline.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodePipelinePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 's3:*'
+                - 'cloudformation:*'
+                - 'iam:PassRole'
+                - 'codebuild:StartBuild'
+                - 'codebuild:BatchGetBuilds'
+                Effect: Allow
+                Resource: '*'
+
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref CodeBuild
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [codebuild.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CodeBuildPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                - 's3:*'
+                - 'logs:*'
+                Effect: Allow
+                Resource: '*'
+
+  CloudFormationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref CloudFormation
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [cloudformation.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      Policies:
+        - PolicyName: CloudFormationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action: '*'
+                Effect: Allow
+                Resource: '*'
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Ref Lambda
+      AssumeRolePolicyDocument:
+        Statement:
+        - Action: ['sts:AssumeRole']
+          Effect: Allow
+          Principal:
+            Service: [lambda.amazonaws.com]
+        Version: '2012-10-17'
+      Path: /
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - "arn:aws:iam::aws:policy/AWSKeyManagementServicePowerUser"
+        - "arn:aws:iam::aws:policy/AWSXrayFullAccess"
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"

@@ -1,7 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: Bananas-as-a-Service CloudFormation Infrastructure
-
-# TODO: Add CodeBuild/CodePipeline etc
+Description: Infrastructure for Bananas-as-a-Service
 
 Resources:
   S3BananaBucket:
@@ -9,6 +7,8 @@ Resources:
     Properties:
       BucketName: bananas-as-a-service
       AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
   DynamoDBWordsTable:
     Type: AWS::DynamoDB::Table
     Properties:

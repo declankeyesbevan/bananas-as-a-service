@@ -30,7 +30,7 @@ def load_yaml_file(input_file):
     except RuntimeError:
         logger.error(f"YAML file is empty: {input_file}")
     except (IOError, FileNotFoundError):
-        logger.error(f"Failed to open YAML file {data}")
+        logger.error(f"Failed to open YAML file {input_file}")
     except YAMLError:
         logger.error(f"Couldn't load data from YAML file {data}")
     else:

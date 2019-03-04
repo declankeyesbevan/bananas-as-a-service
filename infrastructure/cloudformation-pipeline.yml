@@ -1,0 +1,211 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: CodePipeline app build for Bananas-as-a-Service
+
+Parameters:
+  PipelineName:
+    Description: The name of the pipeline.
+    Type: String
+  PipelineRole:
+    Description: Role for performing CodePipeline tasks. Must be fully qualified e.g.
+      arn:aws:iam::123456789012:role/codepipeline-cool-role and have correct IAM permissions
+    Type: String
+  PipelineWebhookName:
+    Description: The name of the pipeline webhook.
+    Type: String
+  ArtifactStoreBucket:
+    Type: String
+    Description: S3 bucket to use for artifacts. Just bucket Name; not URL. IAM user
+      should have access to the bucket.
+  GitHubOwner:
+    Type: String
+    Description: GitHub UserName.
+  GitHubToken:
+    Type: String
+    Description: Secret. It might look something like 9b189a1654643522561f7b3ebd44a1531a4287af
+      OAuthToken with access to Repo. Go to https://github.com/settings/tokens
+    NoEcho: true
+  GitHubSecret:
+    Type: String
+    Description: Secret to authenticate webhook.
+    NoEcho: true
+  GitHubRepo:
+    Type: String
+    Description: GitHub Repo to pull from. Only the Name; not the URL.
+  GitHubBranch:
+    Type: String
+    Description: Branch to use from Repo. Only the Name; not the URL.
+    Default: master
+  BuildName:
+    Description: The name of the build.
+    Type: String
+  BuildRole:
+    Description: Role for performing CodeBuild tasks. Must be fully qualified e.g.
+      arn:aws:iam::123456789012:role/codebuild-cool-role and have correct IAM permissions
+    Type: String
+  ApplicationStackName:
+    Description: The name of the application stack.
+    Type: String
+  CloudFormationRole:
+    Description: Role for performing CloudFormation tasks. Must be fully qualified e.g.
+      arn:aws:iam::123456789012:role/cloudformation-cool-role and have correct IAM permissions
+    Type: String
+  ChangeSetName:
+    Description: The name of the change set.
+    Type: String
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "CodePipeline Settings"
+        Parameters:
+          - PipelineName
+          - PipelineRole
+          - ArtifactStoreBucket
+      - Label:
+          default: "Source Settings"
+        Parameters:
+          - GitHubOwner
+          - GitHubToken
+          - GitHubSecret
+          - GitHubRepo
+          - GitHubBranch
+      - Label:
+          default: "Build Settings"
+        Parameters:
+          - BuildName
+          - BuildRole
+      - Label:
+          default: "Deploy Settings"
+        Parameters:
+          - ApplicationStackName
+          - CloudFormationRole
+          - ChangeSetName
+      - Label:
+          default: "Webhook Settings"
+        Parameters:
+          - PipelineWebhookName
+
+Resources:
+  Pipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location:
+          Ref: ArtifactStoreBucket
+      Name:
+        Ref: PipelineName
+      RoleArn:
+        Ref: PipelineRole
+      Stages:
+        - Name: Source
+          Actions:
+          - InputArtifacts: []
+            Name: Source
+            ActionTypeId:
+              Category: Source
+              Owner: ThirdParty
+              Provider: GitHub
+              Version: '1'
+            OutputArtifacts:
+            - Name: SourceArtifact
+            Configuration:
+              Owner:
+                Ref: GitHubOwner
+              Repo:
+                Ref: GitHubRepo
+              Branch:
+                Ref: GitHubBranch
+              OAuthToken:
+                Ref: GitHubToken
+              PollForSourceChanges: false
+            RunOrder: '1'
+        - Name: Build
+          Actions:
+          - InputArtifacts:
+            - Name: SourceArtifact
+            Name: Build
+            ActionTypeId:
+              Category: Build
+              Owner: AWS
+              Provider: CodeBuild
+              Version: '1'
+            OutputArtifacts:
+            - Name: BuildArtifact
+            Configuration:
+              ProjectName:
+                Ref: BuildName
+            RunOrder: '1'
+        - Name: Deploy
+          Actions:
+            - Name: GenerateChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              InputArtifacts:
+                - Name: BuildArtifact
+              Configuration:
+                ActionMode: CHANGE_SET_REPLACE
+                Capabilities: CAPABILITY_NAMED_IAM
+                StackName:
+                  Ref: ApplicationStackName
+                ChangeSetName:
+                  Ref: ChangeSetName
+                RoleArn:
+                  Ref: CloudFormationRole
+                TemplatePath: BuildArtifact::packaged-app.yml
+              RunOrder: '1'
+            - Name: ExecuteChangeSet
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CloudFormation
+                Version: '1'
+              Configuration:
+                ActionMode: CHANGE_SET_EXECUTE
+                StackName:
+                  Ref: ApplicationStackName
+                ChangeSetName:
+                  Ref: ChangeSetName
+                RoleArn:
+                  Ref: CloudFormationRole
+              RunOrder: '2'
+
+  PipelineWebhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken:
+          Ref: GitHubSecret
+      Filters:
+        - JsonPath: "$.ref"
+          MatchEquals: refs/heads/{Branch}
+      TargetPipeline:
+        Ref: Pipeline
+      TargetAction: Source
+      Name:
+        Ref: PipelineWebhookName
+      TargetPipelineVersion: !GetAtt Pipeline.Version
+      RegisterWithThirdParty: true
+    DependsOn: Pipeline
+
+  Build:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/python:3.6.5
+        Type: LINUX_CONTAINER
+      Name:
+        Ref: BuildName
+      ServiceRole:
+        Ref: BuildRole
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: infrastructure/buildspec-app.yml

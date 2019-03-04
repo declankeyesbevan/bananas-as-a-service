@@ -3,29 +3,25 @@ version: 0.2
 phases:
   install:
     commands:
-      - pip install --upgrade awscli aws-sam-cli
-
+      - pip install --upgrade awscli
   pre_build:
     commands:
       - python -m unittest discover tests
-      - scripts/build_app.sh
-
   build:
     commands:
-      # TODO: use env vars
+      - mkdir build
+      - pip install -r requirements.txt -t build
+      - cp -r bananas_as_a_service build
+  post_build:
+    commands:
+      # TODO: input params not hard-code bucket
       - >
-        sam package
+        aws cloudformation package
         --template-file infrastructure/cloudformation-app.yml
         --output-template-file packaged-app.yml
         --s3-bucket bananas-as-a-service
-
-  post_build:
-    # If this a feature branch, we want a CloudFormation stack created for it, master is auto.
-    commands:
-      # TODO: use env vars
-      - scripts/deploy_feature_branch.sh
-
+        --s3-prefix banana-build
+        --force-upload
 artifacts:
-  type: zip
   files:
     - packaged-app.yml
